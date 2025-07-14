@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type FormData = {
   email: string;
@@ -12,11 +13,14 @@ type FormData = {
 export default function LoginPage() {
   const { register, handleSubmit } = useForm<FormData>();
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const onSubmit = async (data: FormData) => {
     try {
       const res = await axios.post("http://localhost:3000/login", data);
-      console.log("TOKEN:", res.data.token);
+      const token = res.data.token;
+      localStorage.setItem("token", token);
+      router.push("/profile");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.error || "Ошибка входа");
