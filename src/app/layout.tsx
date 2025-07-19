@@ -1,7 +1,4 @@
-export const metadata = {
-  title: "Messenger",
-  description: "Simple messenger client",
-};
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -10,7 +7,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <body className="bg-white text-black min-h-screen">
+        <main className="max-w-xl mx-auto px-4 py-8">{children}</main>
+      </body>
     </html>
   );
 }

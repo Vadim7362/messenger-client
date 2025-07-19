@@ -1,62 +1,96 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import axios from "axios";
 import { useState } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 
-type FormData = {
-  email: string;
-  password: string;
-};
-
-export default function LoginPage() {
-  const { register, handleSubmit } = useForm<FormData>();
-  const [error, setError] = useState<string | null>(null);
+export default function AuthPage() {
+  const [isLogin, setIsLogin] = useState(true);
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
   const router = useRouter();
 
-  const onSubmit = async (data: FormData) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const url = isLogin ? "login" : "register";
+
     try {
-      const res = await axios.post("http://localhost:3000/login", data);
+      const res = await axios.post(`http://localhost:3000/${url}`, form);
       const token = res.data.token;
-      localStorage.setItem("token", token);
-      router.push("/profile");
+      if (token) {
+        localStorage.setItem("token", token);
+        router.push("/profile");
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || "Ошибка входа");
+        alert(
+          "Ошибка: " +
+            (err.response?.data?.error || "Не удалось авторизоваться")
+        );
       } else {
-        setError("Неизвестная ошибка");
+        alert("Неизвестная ошибка");
       }
     }
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-4">
-      <h1 className="text-2xl font-bold mb-4">Вход</h1>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-3 w-full max-w-sm"
-      >
-        <input
-          {...register("email")}
-          type="email"
-          placeholder="Email"
-          className="border px-4 py-2 rounded"
-        />
-        <input
-          {...register("password")}
-          type="password"
-          placeholder="Пароль"
-          className="border px-4 py-2 rounded"
-        />
+    <main className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          {isLogin ? "Вход" : "Регистрация"}
+        </h1>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {!isLogin && (
+            <input
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Имя пользователя"
+              className="border p-2 rounded"
+              required
+            />
+          )}
+
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Email"
+            className="border p-2 rounded"
+            required
+          />
+
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Пароль"
+            className="border p-2 rounded"
+            required
+          />
+
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
+          >
+            {isLogin ? "Войти" : "Зарегистрироваться"}
+          </button>
+        </form>
+
         <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          type="button"
+          onClick={() => setIsLogin(!isLogin)}
+          className="text-blue-600 hover:underline text-sm mt-4 block text-center"
         >
-          Войти
+          {isLogin ? "Зарегистрироваться" : "Войти"}
         </button>
-        {error && <p className="text-red-600">{error}</p>}
-      </form>
+      </div>
     </main>
   );
 }
